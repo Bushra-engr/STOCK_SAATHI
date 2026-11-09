@@ -17,8 +17,14 @@ import './auth.css';
 import './landing.css';
 import './app-theme.css';
 
-const API = import.meta.env.VITE_API_URL || '';
-const authClient = createAuthClient(import.meta.env.NEON_AUTH_BASE_URL);
+const rawApi = import.meta.env.VITE_API_URL || '';
+const API = rawApi.replace(/\/+$/, '');
+const NEON_DEFAULT_AUTH_URL = 'https://ep-wispy-darkness-bdu093v2.neonauth.c-8.us-east-2.aws.neon.tech/neondb/auth';
+const authClient = createAuthClient(
+  import.meta.env.VITE_NEON_AUTH_BASE_URL ||
+  import.meta.env.NEON_AUTH_BASE_URL ||
+  NEON_DEFAULT_AUTH_URL
+);
 const getToken = () => localStorage.getItem('stocksaathi_token') || '';
 const OAUTH_PENDING_KEY = 'stocksaathi_oauth_pending';
 const firstJwt = (...values) => values.find((value) => {
@@ -46,14 +52,14 @@ const getGreeting = (name) => {
 };
 
 const getWsVoiceUrl = () => {
-  const base = import.meta.env.VITE_API_URL || '';
+  const base = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
   if (!base) {
     const loc = window.location;
     const proto = loc.protocol === 'https:' ? 'wss:' : 'ws:';
     return `${proto}//${loc.host}/voice/ws/voice`;
   }
   const wsProto = base.startsWith('https:') ? 'wss:' : 'ws:';
-  return base.replace(/^http(s)?:/, wsProto) + '/voice/ws/voice';
+  return base.replace(/^http(s)?:\/\//, `${wsProto}://`) + '/voice/ws/voice';
 };
 
 async function api(path, options = {}) {
