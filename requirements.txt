@@ -1,0 +1,45 @@
+# ServicePilot — backend dependencies
+# Install with: pip install -r requirements.txt
+
+# API server
+fastapi
+uvicorn[standard]
+
+# Configuration and validation
+pydantic
+pydantic-settings
+python-dotenv
+email-validator
+
+# Database: PostgreSQL + SQLAlchemy
+sqlalchemy
+psycopg[binary]
+pgvector
+
+# Authentication
+PyJWT[crypto]
+pwdlib[argon2]
+
+# Agent orchestration and LLM provider
+langgraph
+langchain-core
+langchain-groq
+
+# HTTP calls to Gnani APIs and other external services
+httpx
+
+# Audio/file upload handling
+python-multipart
+
+# Testing
+pytest
+pytest-asyncio
+
+
+gnani-vachana
+websockets
+
+cerebras-cloud-sdk
+h2
+hpack
+hyperframe
