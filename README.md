@@ -2,7 +2,7 @@
 
 > **Challenge:** Great Indian AI Internship Challenge by [Gnani.ai](https://gnani.ai)  
 > **Tagline:** Voice-first AI inventory & retail intelligence partner for Indian shop owners  
-> **Live App:** [https://stock-saathi.vercel.app](https://stock-saathi.vercel.app) | **Backend API:** [https://stock-saathi-backend-ynd4.onrender.com](https://stock-saathi-backend-ynd4.onrender.com)  
+> **Live App:** [https://stock-saathi.vercel.app](https://stock-saathi-2ijoazgs7-bushras-projects-61528a62.vercel.app/) | **Backend API:** [https://stock-saathi-backend-ynd4.onrender.com](https://stock-saathi-backend-ynd4.onrender.com)  
 
 ---
 
