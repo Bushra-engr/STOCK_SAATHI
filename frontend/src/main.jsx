@@ -23,7 +23,12 @@ const NEON_DEFAULT_AUTH_URL = 'https://ep-wispy-darkness-bdu093v2.neonauth.c-8.u
 const authClient = createAuthClient(
   import.meta.env.VITE_NEON_AUTH_BASE_URL ||
   import.meta.env.NEON_AUTH_BASE_URL ||
-  NEON_DEFAULT_AUTH_URL
+  NEON_DEFAULT_AUTH_URL,
+  {
+    fetchOptions: {
+      credentials: 'include',
+    },
+  }
 );
 const getToken = () => localStorage.getItem('stocksaathi_token') || '';
 const OAUTH_PENDING_KEY = 'stocksaathi_oauth_pending';
