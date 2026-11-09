@@ -70,6 +70,12 @@ const getWsVoiceUrl = () => {
 async function api(path, options = {}) {
   const headers = { ...(options.body ? { 'Content-Type': 'application/json' } : {}), ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}), ...options.headers };
   const response = await fetch(`${API}${path}`, { ...options, headers });
+  const contentType = response.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    const error = new Error('Backend server se connect nahi ho pa raha (received HTML). Vercel settings mein VITE_API_URL add karein.');
+    error.status = 502;
+    throw error;
+  }
   if (!response.ok) {
     const error = new Error((await response.json().catch(() => ({}))).detail || `Request failed (${response.status})`);
     error.status = response.status;
