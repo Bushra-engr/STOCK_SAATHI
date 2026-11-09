@@ -568,19 +568,28 @@ export default function App() {
     };
   }, [isAuthenticated]);
 
-  // Fetch real data strictly from database
-  const refresh = async () => {
-    if (!getToken()) return;
+  // Fetch real data strictly from database with clear tactile feedback
+  const refresh = async (manualClick = false) => {
+    const token = getToken();
+    if (!token) {
+      if (manualClick) setToast('Please sign in to refresh data.');
+      return;
+    }
     setLoading(true);
+    const startTime = Date.now();
     try {
-      const [ov, u, inv, prods, msgs] = await Promise.all([
-        api(`/dashboard/overview?days=${days}`).catch(() => null),
-        api('/users/me').catch(() => null),
-        api('/inventory/').catch(() => []),
-        api('/products/').catch(() => []),
-        api('/voice/messages?limit=50').catch(() => ({ items: [] })),
+      const results = await Promise.allSettled([
+        api(`/dashboard/overview?days=${days}`),
+        api('/users/me'),
+        api('/inventory/'),
+        api('/products/'),
+        api('/voice/messages?limit=50'),
       ]);
-      if (u) {
+
+      const [ovRes, uRes, invRes, prodsRes, msgsRes] = results;
+
+      if (uRes.status === 'fulfilled' && uRes.value) {
+        const u = uRes.value;
         setProfile({
           name: u.name || '',
           shop_name: u.shop_name || 'My Shop',
@@ -589,17 +598,26 @@ export default function App() {
           shop_address: u.shop_address || ''
         });
       }
-      if (ov) {
+
+      if (ovRes.status === 'fulfilled' && ovRes.value) {
+        const ov = ovRes.value;
         setSummary(ov.summary);
         setTopProducts(Array.isArray(ov.top_products?.items) ? ov.top_products.items : []);
         setActivity(Array.isArray(ov.activity?.items) ? ov.activity.items : []);
         setMovements(Array.isArray(ov.movements?.items) ? ov.movements.items : []);
       }
-      setInventory(Array.isArray(inv) ? inv : []);
-      setProducts(Array.isArray(prods) ? prods : []);
-      if (msgs?.items && msgs.items.length > 0) {
+
+      if (invRes.status === 'fulfilled' && Array.isArray(invRes.value)) {
+        setInventory(invRes.value);
+      }
+
+      if (prodsRes.status === 'fulfilled' && Array.isArray(prodsRes.value)) {
+        setProducts(prodsRes.value);
+      }
+
+      if (msgsRes.status === 'fulfilled' && msgsRes.value?.items?.length > 0) {
         setChatMessages(
-          msgs.items.map((m) => ({
+          msgsRes.value.items.map((m) => ({
             id: m.id,
             sender: m.role,
             text: m.message,
@@ -607,9 +625,27 @@ export default function App() {
           }))
         );
       }
-      setError('');
+
+      // Ensure minimum 500ms spin feedback so user visibly sees the refresh action
+      const elapsed = Date.now() - startTime;
+      if (elapsed < 500) {
+        await new Promise((r) => setTimeout(r, 500 - elapsed));
+      }
+
+      // Check if all primary calls failed (network/backend offline)
+      const failedCount = results.filter((r) => r.status === 'rejected').length;
+      if (failedCount === results.length) {
+        const err = results[0].reason;
+        const msg = err?.message || 'Backend server se connect nahi ho pa raha.';
+        setError(msg);
+        if (manualClick) setToast(`Sync failed: ${msg}`);
+      } else {
+        setError('');
+        if (manualClick) setToast('Data updated successfully! ✨');
+      }
     } catch (e) {
       setError(e.message || 'Could not refresh data');
+      if (manualClick) setToast(`Sync failed: ${e.message}`);
     } finally {
       setLoading(false);
     }
@@ -1361,7 +1397,7 @@ export default function App() {
             >
               <Store size={15}/> <span>Home</span>
             </button>
-            <button type="button" className="topbar-icon-btn refresh-btn" title="Refresh data" aria-label="Refresh" onClick={refresh} disabled={loading} style={{ color: loading ? '#f97316' : '' }}>
+            <button type="button" className="topbar-icon-btn refresh-btn" title="Refresh data" aria-label="Refresh" onClick={() => refresh(true)} style={{ color: loading ? '#f97316' : '' }}>
               <RefreshCw size={17} className={loading ? 'spin' : ''} />
             </button>
             <button className="topbar-icon-btn" title="Low stock alerts" aria-label="Notifications" onClick={() => setPage('Inventory')}>
