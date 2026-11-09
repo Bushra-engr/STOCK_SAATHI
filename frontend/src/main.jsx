@@ -17,7 +17,8 @@ import './auth.css';
 import './landing.css';
 import './app-theme.css';
 
-const rawApi = import.meta.env.VITE_API_URL || '';
+const DEFAULT_BACKEND_URL = 'https://stock-saathi-backend-ynd4.onrender.com';
+const rawApi = import.meta.env.VITE_API_URL || DEFAULT_BACKEND_URL;
 const API = rawApi.replace(/\/+$/, '');
 const NEON_DEFAULT_AUTH_URL = 'https://ep-wispy-darkness-bdu093v2.neonauth.c-8.us-east-2.aws.neon.tech/neondb/auth';
 const authClient = createAuthClient(
@@ -57,12 +58,7 @@ const getGreeting = (name) => {
 };
 
 const getWsVoiceUrl = () => {
-  const base = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
-  if (!base) {
-    const loc = window.location;
-    const proto = loc.protocol === 'https:' ? 'wss:' : 'ws:';
-    return `${proto}//${loc.host}/voice/ws/voice`;
-  }
+  const base = (import.meta.env.VITE_API_URL || DEFAULT_BACKEND_URL).replace(/\/+$/, '');
   const wsProto = base.startsWith('https:') ? 'wss:' : 'ws:';
   return base.replace(/^http(s)?:\/\//, `${wsProto}://`) + '/voice/ws/voice';
 };
