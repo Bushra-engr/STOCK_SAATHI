@@ -396,6 +396,27 @@ export default function App() {
       setAuthLoading(true); setAuthError('');
       try {
         const url = new URL(window.location.href);
+        const urlError = url.searchParams.get('error');
+        const urlErrorDesc = url.searchParams.get('error_description');
+        if (urlError) {
+          sessionStorage.removeItem(OAUTH_PENDING_KEY);
+          window.history.replaceState({}, document.title, window.location.pathname);
+          const errDetail = urlError === 'invalid_code'
+            ? 'Google OAuth code verification failed (invalid_code). Google Cloud Console mein "Authorized redirect URIs" check karein.'
+            : `Google login error: ${urlErrorDesc || urlError}`;
+          setAuthError(errDetail);
+          setIsAuthenticated(false);
+          setAuthLoading(false);
+          return;
+        }
+        if (url.searchParams.has('code') && !url.searchParams.has('neon_auth_session_verifier')) {
+          sessionStorage.removeItem(OAUTH_PENDING_KEY);
+          window.history.replaceState({}, document.title, window.location.pathname);
+          setAuthError('Config error: Google redirected to Vercel directly instead of Neon Auth. Google Console Authorized redirect URI must be Neon Auth.');
+          setIsAuthenticated(false);
+          setAuthLoading(false);
+          return;
+        }
         const urlHadVerifier = url.searchParams.has('neon_auth_session_verifier');
         const hadOAuthPending = Boolean(sessionStorage.getItem(OAUTH_PENDING_KEY));
         let resolved = await resolveNeonSession();
